@@ -65,9 +65,17 @@ variable "subnet_ids" {
 }
 
 variable "vpc_endpoint_services" {
-  type        = list(string)
-  description = "List of AWS Endpoint service names that are used to create VPC Interface Endpoints. Both Gateway and Interface Endpoints are supported. See https://docs.aws.amazon.com/general/latest/gr/rande.html for full list."
-  default     = []
+  type = object({
+    interface = list(string)
+    gateway   = list(string)
+  })
+
+  description = "List of VPC Endpoint services separated by type: interface and gateway"
+
+  default = {
+    interface = []
+    gateway   = []
+  }
 }
 
 variable "tags" {
@@ -75,4 +83,3 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
-
