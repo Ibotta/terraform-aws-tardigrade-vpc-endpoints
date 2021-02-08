@@ -55,7 +55,7 @@ Then commit the updated files.
 | sg\_ingress\_rules | Ingress rules for the VPC Endpoint SecurityGroup(s). Set to empty list to disable default rules. | <pre>list(object({<br>    description      = string<br>    prefix_list_ids  = list(string)<br>    from_port        = number<br>    to_port          = number<br>    protocol         = string<br>    cidr_blocks      = list(string)<br>    ipv6_cidr_blocks = list(string)<br>    security_groups  = list(string)<br>  }))</pre> | <pre>[<br>  {<br>    "cidr_blocks": [<br>      "0.0.0.0/0"<br>    ],<br>    "description": null,<br>    "from_port": 0,<br>    "ipv6_cidr_blocks": null,<br>    "prefix_list_ids": null,<br>    "protocol": "-1",<br>    "security_groups": null,<br>    "to_port": 0<br>  }<br>]</pre> | no |
 | subnet\_ids | Target Subnet ids. | `list(string)` | `[]` | no |
 | tags | A map of tags to add to the VPC Endpoint and to the SecurityGroup(s). | `map(string)` | `{}` | no |
-| vpc\_endpoint\_services | List of AWS Endpoint service names that are used to create VPC Interface Endpoints. Both Gateway and Interface Endpoints are supported. See https://docs.aws.amazon.com/general/latest/gr/rande.html for full list. | `list(string)` | `[]` | no |
+| vpc\_endpoint\_services | List of AWS Endpoint service names that are used to create VPC Interface Endpoints. Both Gateway and Interface Endpoints are supported. See https://docs.aws.amazon.com/general/latest/gr/rande.html for full list. | `object({ interface: list(string), gateway: list(string)})` | `{ interface: [], gateway: []}` | no |
 
 ## Outputs
 

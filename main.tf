@@ -6,8 +6,8 @@ data "aws_subnet" "selected" {
 
 data "aws_region" "selected" {}
 
-data "aws_vpc_endpoint_service" "this" {
-  for_each = toset(var.create_vpc_endpoints ? var.vpc_endpoint_services : [])
+data "aws_vpc_endpoint_service" "interface" {
+  for_each = toset(var.create_vpc_endpoints ? var.vpc_endpoint_services.interface : [])
 
   // If we get a "common name" (like "kms") we must generate a fully qualified name.
   // If the name contains the current region we trust the user to have provided a valid fully qualified name.
@@ -16,17 +16,35 @@ data "aws_vpc_endpoint_service" "this" {
   // * Complex common names like "ecr.dkr" and "ecr.api".
   // * Non-standard services like sagemeaker where the fully qualified name is like "aws.sagemaker.us-east-1.notebook".
   service_name = length(regexall(data.aws_region.selected.name, each.key)) == 1 ? each.key : "com.amazonaws.${data.aws_region.selected.name}.${each.key}"
+  service_type = "Interface"
+}
+
+data "aws_vpc_endpoint_service" "gateway" {
+  for_each = toset(var.create_vpc_endpoints ? var.vpc_endpoint_services.gateway : [])
+
+  // If we get a "common name" (like "kms") we must generate a fully qualified name.
+  // If the name contains the current region we trust the user to have provided a valid fully qualified name.
+  // This handles all _current_ services.
+  // * Simple ones like "s3" or "sns".
+  // * Complex common names like "ecr.dkr" and "ecr.api".
+  // * Non-standard services like sagemeaker where the fully qualified name is like "aws.sagemaker.us-east-1.notebook".
+  service_name = length(regexall(data.aws_region.selected.name, each.key)) == 1 ? each.key : "com.amazonaws.${data.aws_region.selected.name}.${each.key}"
+  service_type = "Gateway"
 }
 
 locals {
   vpc_id = join("", data.aws_subnet.selected.*.vpc_id)
 
   # Split Endpoints by their type
-  gateway_endpoints   = toset([for e in data.aws_vpc_endpoint_service.this : e.service_name if e.service_type == "Gateway"])
-  interface_endpoints = toset([for e in data.aws_vpc_endpoint_service.this : e.service_name if e.service_type == "Interface"])
+  gateway_endpoints   = toset([for e in data.aws_vpc_endpoint_service.gateway : e.service_name])
+  interface_endpoints = toset([for e in data.aws_vpc_endpoint_service.interface : e.service_name])
 
   # Only Interface Endpoints support SGs
-  security_groups = toset(var.create_vpc_endpoints ? var.create_sg_per_endpoint ? local.interface_endpoints : ["shared"] : [])
+  security_groups = toset(
+    length(local.interface_endpoints) > 0 ? (
+      var.create_sg_per_endpoint ? local.interface_endpoints : ["shared"]
+    ) : []
+  )
 }
 
 resource "aws_security_group" "this" {
