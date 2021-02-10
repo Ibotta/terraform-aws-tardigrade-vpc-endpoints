@@ -1,4 +1,4 @@
-provider aws {
+provider "aws" {
   region = "us-east-1"
 }
 
@@ -10,7 +10,7 @@ resource "random_string" "this" {
 }
 
 module "vpc" {
-  source = "github.com/terraform-aws-modules/terraform-aws-vpc?ref=v2.15.0"
+  source = "github.com/terraform-aws-modules/terraform-aws-vpc?ref=v2.70.0"
   providers = {
     aws = aws
   }
@@ -29,7 +29,12 @@ module "fully_qualified_name_endpoint" {
     aws = aws
   }
 
-  create_vpc_endpoints  = true
-  vpc_endpoint_services = ["aws.sagemaker.us-east-1.notebook"]
-  subnet_ids            = module.vpc.private_subnets
+  vpc_endpoint_services = [
+    {
+      name = "aws.sagemaker.us-east-1.notebook"
+      type = "Interface"
+    },
+  ]
+
+  subnet_ids = module.vpc.private_subnets
 }

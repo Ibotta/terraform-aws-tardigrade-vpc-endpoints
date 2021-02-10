@@ -4,12 +4,6 @@ variable "create_sg_per_endpoint" {
   default     = false
 }
 
-variable "create_vpc_endpoints" {
-  description = "Toggle to create VPC Endpoints."
-  type        = bool
-  default     = true
-}
-
 variable "sg_egress_rules" {
   description = "Egress rules for the VPC Endpoint SecurityGroup(s). Set to empty list to disable default rules."
   type = list(object({
@@ -59,23 +53,16 @@ variable "sg_ingress_rules" {
 }
 
 variable "subnet_ids" {
+  description = "Target Subnet IDs for \"Interface\" services. Also used to resolve the `vpc_id` for \"Gateway\" services"
   type        = list(string)
-  description = "Target Subnet ids."
-  default     = []
 }
 
 variable "vpc_endpoint_services" {
-  type = object({
-    interface = list(string)
-    gateway   = list(string)
-  })
-
-  description = "List of VPC Endpoint services separated by type: interface and gateway"
-
-  default = {
-    interface = []
-    gateway   = []
-  }
+  description = "List of AWS Endpoint service names and types. Both Gateway and Interface Endpoints are supported. See https://docs.aws.amazon.com/general/latest/gr/rande.html for full list."
+  type = list(object({
+    name = string
+    type = string
+  }))
 }
 
 variable "tags" {
