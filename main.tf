@@ -102,8 +102,8 @@ resource "aws_vpc_endpoint" "gateway_services" {
   route_table_ids   = var.route_table_ids
 }
 
-resource "aws_ssm_parameter" "vpc_dependency" {
-  name = "/infra/vpc/dependency"
-  type = String
+resource "aws_ssm_parameter" "endpoint_dependency_parameter" {
+  name = "/infra/endpoint/dependency"
+  type = string
   value = "Endpoints Created"
 }
