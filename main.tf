@@ -104,6 +104,6 @@ resource "aws_vpc_endpoint" "gateway_services" {
 
 resource "aws_ssm_parameter" "endpoint_dependency_parameter" {
   name = "/infra/endpoint/dependency"
-  type = string
+  type = "String"
   value = "Endpoints Created"
 }
