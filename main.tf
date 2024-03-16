@@ -17,13 +17,8 @@ data "aws_vpc_endpoint_service" "this" {
   service_type = title(each.value.type)
 }
 
-data "aws_network_interface" "endpoints" {
-  for_each = toset(local.network_interface_ids)
-  id       = each.value
-}
 
 locals {
-  vpc_id = data.aws_subnet.selected.vpc_id
 
   # Split Endpoints by their type
   gateway_endpoints   = toset([for e in data.aws_vpc_endpoint_service.this : e.service_name if e.service_type == "Gateway"])
@@ -39,14 +34,6 @@ locals {
   # Regex of Interface services that do not support Private DNS
   no_private_dns = "s3"
 
-  # get only the api_gateway_vpc_endpoints
-  api_gateway_vpc_endpoints = {for key, endpoint in aws_vpc_endpoint.interface_services: key => endpoint if endpoint.service_name == "com.amazonaws.us-east-1.execute-api"}
-  
-  # make a unique, flat list of all network interface IDs associated with API Gateway VPC Endpoints
-  network_interface_ids = toset(flatten([for endpoint in local.api_gateway_vpc_endpoints : endpoint.network_interface_ids]))
-
-  # create a list of maps where each map has target_id -> the private IP for a network interface
-  target_group_attachments = [for ni in data.aws_network_interface.endpoints : {target_id = ni.private_ip}]
 }
 
 resource "aws_security_group" "this" {
@@ -114,4 +101,17 @@ resource "aws_vpc_endpoint" "gateway_services" {
   vpc_endpoint_type = "Gateway"
   vpc_id            = local.vpc_id
   route_table_ids   = var.route_table_ids
+}
+
+resource "aws_vpc_endpoint" "api_gateway" {
+  vpc_id            = local.vpc_id
+  service_name      = "com.amazonaws.us-east-1.execute-api"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = var.subnet_ids
+
+  security_group_ids = var.create_sg_per_endpoint ? [aws_security_group.this["api_gateway"].id] : [aws_security_group.this["shared"].id]
+  # https://docs.aws.amazon.com/vpc/latest/userguide/vpce-interface.html#vpce-private-dns
+  private_dns_enabled = length(regexall(local.no_private_dns, each.key)) == 0 ? true : false
+  auto_accept       = true
+  tags              = var.tags
 }

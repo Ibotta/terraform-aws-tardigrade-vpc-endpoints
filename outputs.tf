@@ -10,6 +10,6 @@ output "vpc_endpoint_gateway_services" {
   value = aws_vpc_endpoint.gateway_services
 }
 
-output "target_group_attachments" {
-  value = local.target_group_attachments
+output "api_gateway_network_interface_ids" {
+  value = aws_vpc_endpoint.api_gateway.network_interface_ids
 }
