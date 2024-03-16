@@ -112,7 +112,7 @@ resource "aws_vpc_endpoint" "api_gateway" {
 
   security_group_ids = var.create_sg_per_endpoint ? [aws_security_group.this["api_gateway"].id] : [aws_security_group.this["shared"].id]
   # https://docs.aws.amazon.com/vpc/latest/userguide/vpce-interface.html#vpce-private-dns
-  private_dns_enabled = length(regexall(local.no_private_dns, each.key)) == 0 ? true : false
+  private_dns_enabled = true
   auto_accept       = true
   tags              = var.tags
 }
