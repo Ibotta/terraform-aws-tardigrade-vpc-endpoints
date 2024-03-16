@@ -19,7 +19,8 @@ data "aws_vpc_endpoint_service" "this" {
 
 
 locals {
-
+  vpc_id = data.aws_subnet.selected.vpc_id
+  
   # Split Endpoints by their type
   gateway_endpoints   = toset([for e in data.aws_vpc_endpoint_service.this : e.service_name if e.service_type == "Gateway"])
   interface_endpoints = toset([for e in data.aws_vpc_endpoint_service.this : e.service_name if e.service_type == "Interface"])
