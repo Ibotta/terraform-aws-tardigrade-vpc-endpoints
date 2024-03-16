@@ -17,6 +17,11 @@ data "aws_vpc_endpoint_service" "this" {
   service_type = title(each.value.type)
 }
 
+data "aws_network_interface" "endpoints" {
+  for_each = toset(local.network_interface_ids)
+  id       = each.value
+}
+
 locals {
   vpc_id = data.aws_subnet.selected.vpc_id
 
@@ -33,6 +38,15 @@ locals {
 
   # Regex of Interface services that do not support Private DNS
   no_private_dns = "s3"
+
+  # get only the api_gateway_vpc_endpoints
+  api_gateway_vpc_endpoints = {for key, endpoint in aws_vpc_endpoint.interface_services: key => endpoint if endpoint.service_name == "com.amazonaws.us-east-1.execute-api"}
+  
+  # make a unique, flat list of all network interface IDs associated with API Gateway VPC Endpoints
+  network_interface_ids = toset(flatten([for endpoint in local.api_gateway_vpc_endpoints : endpoint.network_interface_ids]))
+
+  # create a list of maps where each map has target_id -> the private IP for a network interface
+  target_group_attachments = [for ni in data.aws_network_interface.endpoints : {target_id = ni.private_ip}]
 }
 
 resource "aws_security_group" "this" {
@@ -100,10 +114,4 @@ resource "aws_vpc_endpoint" "gateway_services" {
   vpc_endpoint_type = "Gateway"
   vpc_id            = local.vpc_id
   route_table_ids   = var.route_table_ids
-}
-
-resource "aws_ssm_parameter" "endpoint_dependency_parameter" {
-  name = "/infra/endpoint/dependency"
-  type = "String"
-  value = "Endpoints Created"
 }

@@ -10,6 +10,6 @@ output "vpc_endpoint_gateway_services" {
   value = aws_vpc_endpoint.gateway_services
 }
 
-output "endpoint_dependency_parameter" {
-  value = aws_ssm_parameter.endpoint_dependency_parameter
+output "target_group_attachments" {
+  value = local.target_group_attachments
 }
