@@ -13,3 +13,7 @@ output "vpc_endpoint_gateway_services" {
 output "api_gateway_network_interface_ids" {
   value = aws_vpc_endpoint.api_gateway
 }
+
+output "vpc_id" {
+  value = local.vpc_id
+}
