@@ -11,5 +11,5 @@ output "vpc_endpoint_gateway_services" {
 }
 
 output "api_gateway_network_interface_ids" {
-  value = aws_vpc_endpoint.api_gateway.network_interface_ids
+  value = aws_vpc_endpoint.api_gateway
 }
